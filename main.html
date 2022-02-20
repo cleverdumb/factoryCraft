@@ -66,6 +66,11 @@
         #invTable > *{
             user-select: none;
         }
+        #filter {
+            width:60;
+            height:60;
+            border: 2px black solid
+        }
     </style>
     <body>
         <div id='resources'>
@@ -99,7 +104,11 @@
             <div id='craftingRecipes'></div>
             <div id='furnacesContainer'></div>
             <br>
+            <div id='filterContainer'></div>
+            <br>
             <button id='backToResources' onclick='game.backRes()'>Go back</button>
+            <br>
+            <button onclick='game.depositTrash()' id='depositTrash'>Deposit trash</button>
             <br>
         </div>
         <table id='invTable'></table>
@@ -211,11 +220,14 @@
                         row.append(cell2);
                         cell1.addEventListener('click',(e)=>{
                             if (game.world != 0) {
-                                if (!game.shift) {
+                                if (!game.shift && !game.meta) {
                                     game.invClicked(item);
                                 }
-                                else {
+                                else if (game.shift && !game.meta) {
                                     game.invAltClicked(item);
+                                }
+                                else if (!game.shift && game.meta) {
+                                    game.invAlt2Clicked(item);
                                 }
                             }
                         })
@@ -369,6 +381,12 @@
                 }
             } 
 
+            // class Filter {
+            //     constructor() {
+            //         this.enabled = false;
+            //     }
+            // }
+
             const game = {
                 w:r_cvs.width,
                 h:r_cvs.height,
@@ -380,6 +398,7 @@
                     yd:true
                 },
                 shift:false,
+                meta:false,
                 clear:function() {
                     ctx.clearRect(0,0,this.w,this.h);
                 },
@@ -483,7 +502,10 @@
                     compressedWood:'black',
                     glass:'cyan',
                     trash:'green',
-                    stoneGlass:'navy'
+                    stoneGlass:'navy',
+                    filter:'purple',
+                    iron:'#F61067',
+                    ironIngot:'black'
                 },
                 world:0,
                 initHome:function() {
@@ -561,6 +583,14 @@
                         this.updateRecipes();
                         player.updateInv();
                     }
+                    else if (item == 'filter') {
+                        // this.filter.enabled = true;
+                        this.filterEmpty = true;
+                        delete recipes.filter;
+                        this.drawFilter();
+                        this.updateRecipes();
+                        player.updateInv();
+                    }
                     else {
                         player.addItem(item);
                     }
@@ -620,6 +650,54 @@
                             console.log('fuel not empty')
                         }
                     }
+                },
+                depositTrash:function() {
+                    delete player.inv.trash;
+                    player.updateInv();
+                },
+                // filter:new Filter(),
+                drawFilter:function() {
+                    let filter = document.createElement('div');
+                    filter.id='filter';
+                    $('#filterContainer').append(filter);
+                },
+                filterEmpty:false,
+                invAlt2Clicked:function(item) {
+                    // console.log(`inv meta clicked item: ${item}`);
+                    if (this.filterEmpty) {
+                        if (filterRecipes.hasOwnProperty(item)) {
+                            // console.log('found recipe');
+                            player.inv[item]--;
+                            if (player[item]==0) {
+                                delete player.inv[item];
+                            }
+                            this.filterEmpty = false;
+                            $('#filter').css('backgroundColor',this.itemColor[item])
+                            setTimeout(()=>{
+                                this.filterEmpty = true;
+                                let results = this.getFilterResults(item);
+                                // console.log('results in clicked');
+                                // console.log(results);
+                                results.forEach(x=>player.addItem(x));
+                                $('#filter').css('backgroundColor','');
+                            },filterTimes[item])
+                        }
+                        else {
+                            console.log('no recipe');
+                        }
+                    }
+                },
+                getFilterResults:function(item) {
+                    let recipe = filterRecipes[item];
+                    let result = [];
+                    recipe.forEach(x=>{
+                        let rand = Math.round(Math.random()*99);
+                        if (rand<x.prob) {
+                            result.push(x.result);
+                        }
+                    })
+                    // console.log(result);
+                    return result;
                 }
             }
 
@@ -722,6 +800,9 @@
                     case 'Shift':
                         game.shift = true;
                     break;
+                    case 'Meta':
+                        game.meta = true;
+                    break;
                 }
             })
 
@@ -729,6 +810,9 @@
                 switch (e.key) {
                     case 'Shift':
                         game.shift = false;
+                    break;
+                    case 'Meta':
+                        game.meta = false;
                     break;
                 }
             })
