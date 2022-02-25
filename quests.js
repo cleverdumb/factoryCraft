@@ -22,7 +22,6 @@ class Quest {
         }
     }
     realComplete() {
-        console.log(`${this.name} real completed`)
         this.completed = true;
         this.enabled = false;
         if (this.parentIndex<quests.length-1) {
