@@ -1,4 +1,4 @@
-console.log('tools loaded');
+console.log('%ctools loaded','color:lime');
 const createGrid = (w = 1, h = 1, el = undefined) => {
     let grid = [];
     for (let a = 0; a < h; a++) {

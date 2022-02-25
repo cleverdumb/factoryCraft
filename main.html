@@ -71,9 +71,20 @@
             height:60;
             border: 2px black solid
         }
+        #questsContainer {
+            border: var(--border);
+            width:400;
+            height:400;
+            overflow-y:scroll;
+            overflow-x:hidden;
+        }
+        .quest {
+            width:100%;
+            border:1px solid black;
+        }
     </style>
     <body>
-        <div id='resources'>
+        <div id='resources' class='worlds'>
             <canvas id='cvs1' class='resources'></canvas>
             <br>
             <button onclick='move("up")'>UP</button>
@@ -99,7 +110,7 @@
                 </tr>
             </table>
         </div>
-        <div id='home' hidden>
+        <div id='home' class='worlds' hidden>
             <table id='craftingTable'></table>
             <div id='craftingRecipes'></div>
             <div id='furnacesContainer'></div>
@@ -111,9 +122,14 @@
             <button onclick='game.depositTrash()' id='depositTrash'>Deposit trash</button>
             <br>
         </div>
+        <div id='quests' class='worlds' hidden>
+            <button id='backToRes' onclick='game.backRes()'>Go back</button>
+            <div id='questsContainer'></div>
+        </div>
         <table id='invTable'></table>
         <script src='tools.js'></script>
         <script src='recipes.js'></script>
+        <!-- <script src='quests.js'></script> -->
         <script>
             const r_cvs = document.getElementById('cvs1');
             const ctx = r_cvs.getContext('2d');
@@ -166,7 +182,7 @@
                         ru:game.grid[this.gy-1][this.gx+1],
                         rd:game.grid[this.gy+1][this.gx+1]
                     };
-                    this.inv = {};
+                    this.inv = {wood:30,stone:30,sand:30,glass:30};
                     this.invOpen = false;
                 }
                 draw() {
@@ -509,7 +525,7 @@
                 },
                 world:0,
                 initHome:function() {
-                    $('#resources').hide();
+                    $('.worlds').hide();
                     this.world=1;
                     $('#home').show();
                     // this.genCrafting();
@@ -518,8 +534,8 @@
                     // $('#cvs2').show();
                 },
                 initResources:function() {
+                    $('.worlds').hide();
                     $('#resources').show();
-                    $('#home').hide();
                     this.world = 0;
                 },
                 updateRecipes:function() {
@@ -562,6 +578,7 @@
                     })
                 },
                 backRes:function() {
+                    $('#invTable').show();
                     this.initResources();
                 },
                 recipeClicked:function(item) {
@@ -698,6 +715,53 @@
                     })
                     // console.log(result);
                     return result;
+                },
+                initQuests:function() {
+                    $('.worlds').hide();
+                    $('#quests').show();
+                    $('#invTable').hide();
+                    this.world = 2;
+                    this.drawQuests();
+                },
+                drawQuests:function() {
+                    $('#questsContainer').empty();
+                    quests.forEach(x=>{
+                        let quest = document.createElement('div');
+                        if (x.completed) {
+                            quest.style.backgroundColor = 'lime';
+                        }
+                        quest.id = `quest-${x.name}`
+                        quest.classList.add('quest');
+                        $('#questsContainer').append(quest);
+                        let desc = document.createElement('div');
+                        desc.innerText = x.name;
+                        quest.append(desc);
+                        if (x.enabled) {
+                            let checkBtn = document.createElement('button');
+                            checkBtn.innerText = 'Submit/check';
+                            checkBtn.onclick = ()=>{game.questClicked(x.name)};
+                            quest.append(checkBtn);
+                        }
+                        quest.addEventListener('click',()=>{
+                            if (x.enabled || x.completed) {
+                                questToggle(x.name);
+                            }
+                        })
+                        if (x.expanded) {
+                            quest.append(document.createElement('hr'))
+                            let detail = document.createElement('div');
+                            detail.innerText = x.detail;
+                            quest.append(detail);
+                        }
+                    })
+                },
+                questClicked:function(name) {
+                    // console.log('questClicked');
+                    quests.forEach(x=>{
+                        if (x.name == name) {
+                            x.checkReq();
+                        }
+                    })
                 }
             }
 
@@ -734,6 +798,9 @@
                                 player.y-=30;
                                 player.gy--;
                             }
+                        }
+                        else {
+                            game.initQuests();
                         }
                     break;
                     case 'left':
@@ -821,5 +888,6 @@
                 player.sur[id].clicked()
             }
         </script>
+        <script src='quests.js'></script>
     </body>
 </html>

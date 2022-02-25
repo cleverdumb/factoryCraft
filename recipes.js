@@ -1,3 +1,5 @@
+console.log('%crecipe loaded','color:red')
+
 const recipes = {
     furnace:{
         stone:7,
