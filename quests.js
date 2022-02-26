@@ -77,4 +77,6 @@ function questToggle(name) {
     game.drawQuests();
 }
 
-// game.restoreQuests();
+if (localStorage.getItem('$fc_questsState')!==null) {
+    game.restoreQuests();
+}

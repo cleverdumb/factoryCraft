@@ -377,7 +377,7 @@
                 }
                 smelt() {
                     if (this.smelting) {
-                        console.log('decreasing time')
+                        // console.log('decreasing time')
                         this.rawTime--;
                         this.fuelTime--;
                     }
@@ -631,10 +631,10 @@
                     $('#furnacesContainer').append(furnace);
                 },
                 invClicked:function(item) {
-                    console.log(`inv clicked item: ${item}`)
+                    // console.log(`inv clicked item: ${item}`)
                     if (this.furnace.enabled) {
                         if (this.furnace.raw == undefined) {
-                            console.log('empty');
+                            // console.log('empty');
                             this.furnace.raw = item;
                             player.inv[item]--;
                             if (player.inv[item]==0) {
@@ -646,15 +646,15 @@
                         //     console.log('same type');
                         // }
                         else {
-                            console.log('not empty');
+                            // console.log('not empty');
                         }
                     }
                 },
                 invAltClicked:function(item) {
-                    console.log(`inv alt clicked item: ${item}`);
+                    // console.log(`inv alt clicked item: ${item}`);
                     if (this.furnace.enabled) {
                         if (this.furnace.fuel == undefined) {
-                            console.log('empty fuel');
+                            // console.log('empty fuel');
                             if (furnaceFuels.includes(item)) {
                                 this.furnace.fuel = item;
                                 player.inv[item]--;
@@ -664,11 +664,11 @@
                                 player.updateInv();
                             }
                             else {
-                                console.log('not a fuel')
+                                // console.log('not a fuel')
                             }
                         }
                         else {
-                            console.log('fuel not empty')
+                            // console.log('fuel not empty')
                         }
                     }
                 },
@@ -705,7 +705,7 @@
                             },filterTimes[item])
                         }
                         else {
-                            console.log('no recipe');
+                            // console.log('no recipe');
                         }
                     }
                 },
@@ -821,7 +821,7 @@
                 },
                 restoreResGrid:function() {
                     let savedGrid = JSON.parse(localStorage.getItem('$fc_resGrid'));
-                    console.log(savedGrid);
+                    // console.log(savedGrid);
                     savedGrid.loop2d((el,x,y)=>{
                         switch (el) {
                             case 'ground':
@@ -848,13 +848,13 @@
                 },
                 restoreInv:function() {
                     let savedInv = JSON.parse(localStorage.getItem('$fc_inv'));
-                    console.log(savedInv);
+                    // console.log(savedInv);
                     player.inv = savedInv;
                     player.updateInv();
                 },
                 restoreMachines:function() {
                     let savedMachines = JSON.parse(localStorage.getItem('$fc_machines'));
-                    console.log(savedMachines);
+                    // console.log(savedMachines);
                     if (savedMachines.furnace) {
                         this.furnace.enabled = true;
                         delete recipes.furnace;
@@ -870,6 +870,15 @@
                         player.updateInv();
                         this.filterEnabled = true;
                     }
+                },
+                restoreQuests:function() {
+                    let savedQuests = JSON.parse(localStorage.getItem('$fc_questsState'));
+                    quests.forEach((x,i)=>{
+                        x.completed = savedQuests[i].completed;
+                        x.completeCount = savedQuests[i].completeCount;
+                        x.enabled = savedQuests[i].enabled;
+                    })
+                    this.drawQuests();
                 }
             }
 
