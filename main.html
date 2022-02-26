@@ -85,6 +85,7 @@
     </style>
     <body>
         <div id='resources' class='worlds'>
+            <button id='save' onclick='game.save()'>Save</button>
             <canvas id='cvs1' class='resources'></canvas>
             <br>
             <button onclick='move("up")'>UP</button>
@@ -146,6 +147,7 @@
                     this.x = x*30;
                     this.y = y*30;
                     this.walkable = true;
+                    this.name = 'ground';
                 }
                 draw() {
                     ctx.fillStyle = this.color;
@@ -254,6 +256,7 @@
             class Black {
                 constructor() {
                     this.color = 'black';
+                    this.name = 'black';
                 }
                 draw() {}
             }
@@ -607,6 +610,7 @@
                         this.drawFilter();
                         this.updateRecipes();
                         player.updateInv();
+                        this.filterEnabled = true;
                     }
                     else {
                         player.addItem(item);
@@ -679,6 +683,7 @@
                     $('#filterContainer').append(filter);
                 },
                 filterEmpty:false,
+                filterEnabled:false,
                 invAlt2Clicked:function(item) {
                     // console.log(`inv meta clicked item: ${item}`);
                     if (this.filterEmpty) {
@@ -742,7 +747,7 @@
                             checkBtn.onclick = ()=>{game.questClicked(x.name)};
                             quest.append(checkBtn);
                         }
-                        quest.addEventListener('click',()=>{
+                        desc.addEventListener('click',()=>{
                             if (x.enabled || x.completed) {
                                 questToggle(x.name);
                             }
@@ -762,6 +767,109 @@
                             x.checkReq();
                         }
                     })
+                },
+                save:function() {
+                    this.saveQuests();
+                    this.saveResGrid();
+                    this.savePlayer();
+                    this.saveInv();
+                    this.saveMachines();
+                },
+                saveQuests:function() {
+                    let questsState = [];
+                    quests.forEach((x,i)=>{
+                        questsState.push({});
+                        questsState[i].completeCount = x.completeCount;
+                        questsState[i].completed = x.completed;
+                        questsState[i].enabled = x.enabled;
+                    })
+                    localStorage.setItem('$fc_questsState',JSON.stringify(questsState));
+                },
+                saveResGrid:function() {
+                    let altGrid = createGrid(21,21);
+                    game.grid.loop2d((el,x,y)=>{
+                        altGrid[y][x] = el.name;
+                    })
+                    localStorage.setItem('$fc_resGrid',JSON.stringify(altGrid))
+                },
+                savePlayer:function() {
+                    let playerData = {gx:player.gx,gy:player.gy};
+                    localStorage.setItem('$fc_playerData',JSON.stringify(playerData));
+                },
+                saveInv:function() {
+                    localStorage.setItem('$fc_inv',JSON.stringify(player.inv));
+                },
+                saveMachines:function() {
+                    let saveObj = {};
+                    saveObj.furnace = game.furnace.enabled;
+                    saveObj.filter = game.filterEnabled;
+                    localStorage.setItem('$fc_machines',JSON.stringify(saveObj));
+                },
+                restoreSave:function() {
+                    if (localStorage.getItem('$fc_resGrid')!==null) {
+                        this.restoreResGrid();
+                    }
+                    if (localStorage.getItem('$fc_playerData')!==null) {
+                        this.restorePlayer();
+                    }
+                    if (localStorage.getItem('$fc_inv')!==null) {
+                        this.restoreInv();
+                    }
+                    if (localStorage.getItem('$fc_machines')!==null) {
+                        this.restoreMachines();
+                    }
+                },
+                restoreResGrid:function() {
+                    let savedGrid = JSON.parse(localStorage.getItem('$fc_resGrid'));
+                    console.log(savedGrid);
+                    savedGrid.loop2d((el,x,y)=>{
+                        switch (el) {
+                            case 'ground':
+                                this.grid[y][x] = new Ground(x,y);
+                            break;
+                            case 'wood':
+                                this.grid[y][x] = new Wood(x,y);
+                            break;
+                            case 'sand':
+                                this.grid[y][x] = new Sand(x,y);
+                            break;
+                            case 'stone':
+                                this.grid[y][x] = new Stone(x,y);
+                            break;
+                        }
+                    })
+                },
+                restorePlayer:function() {
+                    let playerData = JSON.parse(localStorage.getItem('$fc_playerData'));
+                    player.gx = playerData.gx;
+                    player.gy = playerData.gy;
+                    player.x = player.gx*30;
+                    player.y = player.gy*30;
+                },
+                restoreInv:function() {
+                    let savedInv = JSON.parse(localStorage.getItem('$fc_inv'));
+                    console.log(savedInv);
+                    player.inv = savedInv;
+                    player.updateInv();
+                },
+                restoreMachines:function() {
+                    let savedMachines = JSON.parse(localStorage.getItem('$fc_machines'));
+                    console.log(savedMachines);
+                    if (savedMachines.furnace) {
+                        this.furnace.enabled = true;
+                        delete recipes.furnace;
+                        this.drawFurnace();
+                        this.updateRecipes();
+                        player.updateInv();
+                    }
+                    if (savedMachines.filter) {
+                        this.filterEmpty = true;
+                        delete recipes.filter;
+                        this.drawFilter();
+                        this.updateRecipes();
+                        player.updateInv();
+                        this.filterEnabled = true;
+                    }
                 }
             }
 
@@ -773,6 +881,7 @@
                 // game.grid[7][7] = new Wood(7,7);
                 game.initSursBtn();
                 player.updateInv();
+                game.restoreSave();
             }
 
             init();
