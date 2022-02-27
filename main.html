@@ -86,6 +86,7 @@
     <body>
         <div id='resources' class='worlds'>
             <button id='save' onclick='game.save()'>Save</button>
+            <button id='clearSave' onclick='game.clearSave()'>Clear save</button>
             <canvas id='cvs1' class='resources'></canvas>
             <br>
             <button onclick='move("up")'>UP</button>
@@ -879,6 +880,16 @@
                         x.enabled = savedQuests[i].enabled;
                     })
                     this.drawQuests();
+                },
+                clearSave:function() {
+                    if (confirm('Really delete all stats?')) {
+                        localStorage.removeItem('$fc_questsState');
+                        localStorage.removeItem('$fc_playerData');
+                        localStorage.removeItem('$fc_inv');
+                        localStorage.removeItem('$fc_machines');
+                        localStorage.removeItem('$fc_resGrid');
+                        window.location.reload();
+                    }
                 }
             }
 
